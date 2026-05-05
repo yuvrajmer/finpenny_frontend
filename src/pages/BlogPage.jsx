@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, User, Tag } from 'lucide-react';
+import { ArrowRight, ChevronRight , User, Tag } from 'lucide-react';
 
 const API = 'http://localhost:8000/api';
 
 const BlogHero = () => (
   <section
-    className="relative w-full py-20 flex items-center"
+    className="relative h-[550px] w-full flex items-center overflow-hidden"
     style={{
       background: 'linear-gradient(135deg, #1a3a5a 0%, #2B5A84 60%, #1a3a5a 100%)',
       minHeight: 240,
@@ -20,24 +20,42 @@ const BlogHero = () => (
         backgroundPosition: 'center',
       }}
     />
-    <div className="container mx-auto px-8 relative z-10">
-      <h1 className="text-5xl font-bold text-white mb-4">Blog</h1>
-      <nav className="flex items-center gap-2 text-white/70 text-sm">
-        <Link to="/" className="hover:text-white transition-colors">Home</Link>
-        <ArrowRight size={14} />
-        <span className="text-white">Blog</span>
-      </nav>
-    </div>
+    <div className="container px-22 relative pt-40 z-10">
+        <div className="max-w-4xl">
+          {/* Main Heading - Exact Font Style */}
+          <h1 className="text-white text-6xl md:text-6xl font-bold  mb-5 tracking-tight">
+            Blog
+          </h1>
+
+          {/* Breadcrumbs - Matching the exact arrow and spacing */}
+          <div className="flex items-center space-x-3 text-white/90 font-medium text-lg">
+            <span className="hover:text-white cursor-pointer transition-colors">Home</span>
+            
+            <div className="flex items-center">
+              <div className="w-8 h-[1px] bg-white/60"></div>
+              <ChevronRight size={18} className="-ml-1" />
+            </div>
+
+            <span className="text-white/70">Blog</span>
+          </div>
+        </div>
+      </div>
   </section>
 );
 
 const BlogCard = ({ post }) => {
-  const excerpt = post.excerpt || stripHtml(post.content).substring(0, 120) + '...';
+  // Limit excerpt to 150 characters
+  const excerpt = post.excerpt ? post.excerpt.substring(0, 150) + (post.excerpt.length > 150 ? '...' : '') : stripHtml(post.content).substring(0, 150) + '...';
+  
+  // Get image dimensions for proper aspect ratio
+  const imgWidth = post.image_width || 1200;
+  const imgHeight = post.image_height || 630;
+  const aspectRatio = imgHeight / imgWidth;
 
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
-      {/* Cover Image */}
-      <div className="relative overflow-hidden" style={{ height: 260 }}>
+    <div className="bg-white w-95 rounded-2xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-lg transition-all duration-300 group">
+      {/* Cover Image with proper aspect ratio */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#e8f1f8] to-[#c8dff0]" style={{ aspectRatio: `${imgWidth} / ${imgHeight}` }}>
         {post.cover_image ? (
           <img
             src={post.cover_image}
@@ -45,7 +63,7 @@ const BlogCard = ({ post }) => {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#e8f1f8] to-[#c8dff0] flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center">
             <span className="text-[#2B5A84] opacity-40 text-6xl font-bold">F</span>
           </div>
         )}
@@ -62,13 +80,10 @@ const BlogCard = ({ post }) => {
 
       {/* Card Body */}
       <div className="p-6">
-        {/* Author */}
+        {/* Meta */}
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
-            <User size={14} className="text-gray-500" />
-          </div>
-          <span className="text-sm text-gray-500">By{' '}
-            <span className="text-[#2B5A84] font-medium">{post.author || 'admin'}</span>
+          <span className="text-sm text-gray-500">
+            {new Date(post.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
         </div>
 
@@ -82,7 +97,7 @@ const BlogCard = ({ post }) => {
         </Link>
 
         {/* Excerpt */}
-        <p className="text-gray-500 text-sm leading-relaxed mb-5 line-clamp-3">
+        <p className="text-gray-500 text-sm leading-relaxed mb-5 line-clamp-2">
           {excerpt}
         </p>
 
@@ -112,21 +127,12 @@ const BlogPage = () => {
   const [recentPosts, setRecentPosts] = useState([]);
 
   useEffect(() => {
-    fetchCategories();
     fetchPosts();
   }, []);
 
   useEffect(() => {
     fetchPosts();
   }, [activeCategory, searchQuery]);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch(`${API}/blog/categories`);
-      const data = await res.json();
-      if (data.success) setCategories(data.data);
-    } catch (e) {}
-  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -142,6 +148,15 @@ const BlogPage = () => {
       if (data.success) {
         setPosts(data.data);
         setRecentPosts(data.data.slice(0, 5));
+        
+        // Only show categories that have published blogs
+        const categoriesInPosts = new Set();
+        data.data.forEach(post => {
+          if (post.category_name) categoriesInPosts.add(JSON.stringify({ id: post.category_id, name: post.category_name, slug: post.category_slug }));
+        });
+        
+        const uniqueCategories = Array.from(categoriesInPosts).map(c => JSON.parse(c));
+        setCategories(uniqueCategories);
       }
     } catch (e) {}
     setLoading(false);
@@ -181,75 +196,6 @@ const BlogPage = () => {
                 </div>
               )}
             </div>
-
-            {/* ── Sidebar ── */}
-            <aside className="w-full lg:w-72 flex-shrink-0 space-y-6">
-
-              {/* Search */}
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="flex">
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    className="flex-1 px-4 py-3 text-sm outline-none text-gray-700"
-                  />
-                  <button className="px-4 text-gray-400 hover:text-[#2B5A84] transition-colors">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Categories */}
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                <div className="bg-[#2B5A84] text-white px-5 py-3 font-semibold text-sm">Category</div>
-                <div className="p-2">
-                  <button
-                    onClick={() => setActiveCategory('')}
-                    className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm transition-colors ${activeCategory === '' ? 'text-[#2B5A84] font-semibold bg-[#e8f1f8]' : 'text-gray-500 hover:text-[#2B5A84] hover:bg-[#f5f9ff]'}`}
-                  >
-                    <span>All Posts</span>
-                    <span className="text-xs text-gray-400">({posts.length})</span>
-                  </button>
-                  {catWithCount.map(c => (
-                    <button
-                      key={c.id}
-                      onClick={() => setActiveCategory(activeCategory === c.slug ? '' : c.slug)}
-                      className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm transition-colors ${activeCategory === c.slug ? 'text-[#2B5A84] font-semibold bg-[#e8f1f8]' : 'text-gray-500 hover:text-[#2B5A84] hover:bg-[#f5f9ff]'}`}
-                    >
-                      <span>{c.name}</span>
-                      <span className="text-xs text-gray-400">({c.count})</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Recent Articles */}
-              {recentPosts.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-                  <div className="bg-[#2B5A84] text-white px-5 py-3 font-semibold text-sm">Recent Articles</div>
-                  <div className="p-4 space-y-4">
-                    {recentPosts.map(p => (
-                      <Link key={p.id} to={`/blog/${p.slug}`} className="flex gap-3 group">
-                        <div className="flex-shrink-0 w-14 h-12 rounded-lg overflow-hidden bg-[#e8f1f8]">
-                          {p.cover_image ? (
-                            <img src={p.cover_image} alt={p.title} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-[#2B5A84] text-xs font-bold opacity-40">F</div>
-                          )}
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium text-[#2B5A84] leading-snug group-hover:underline line-clamp-2">{p.title}</p>
-                          <p className="text-[11px] text-gray-400 mt-1">{new Date(p.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-            </aside>
           </div>
         </div>
       </section>
