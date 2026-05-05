@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, ArrowRight, Wand2, Target, BarChart3 } from 'lucide-react';
 
+
 const commitments = [
   {
     title: "Smart Scheme Selection",

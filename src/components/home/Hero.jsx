@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router-dom';
 import { Check } from "lucide-react";
 
 const Hero = () => {
@@ -39,9 +40,11 @@ const Hero = () => {
           </div>
 
           {/* Button: Fixed padding and rounded corners */}
-          <button className="bg-[#2B5A84] text-white px-7 py-3 rounded-md font-bold text-lg hover:bg-[#D9231D] transition-all shadow-md shadow-blue-900/20">
-            Free Consultation
-          </button>
+          <Link to="/contact">
+            <button className="bg-[#2B5A84] text-white px-7 py-3 rounded-md font-bold text-lg hover:bg-[#D9231D] transition-all shadow-md shadow-blue-900/20">
+              Free Consultation
+            </button>
+          </Link>
 
           {/* Features: Smaller text and red checkmarks */}
           <div className="flex items-center space-x-12 pt-4">
@@ -55,7 +58,6 @@ const Hero = () => {
             </div>
           </div>
         </div>
-        
 
         {/* Right Image Section: Moved slightly higher and right */}
         <div className=" relative flex justify-end">
