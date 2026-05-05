@@ -14,12 +14,14 @@ import ELSS from './components/services/ELSS.jsx';
 import GoalBasedInvestments from './components/services/GoalBasedInvestments.jsx';
 import Disclaimer from './components/footermenu/Disclaimer.jsx';
 import PrivacyPolicy from './components/footermenu/PrivacyPolicy.jsx';
+import BlogPage from './pages/BlogPage.jsx';
+import BlogDetailPage from './pages/BlogDetailPage.jsx';
 
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <div className="min-h-screen flex flex-col bg-white">
-        <ScrollToTop /> 
+        <ScrollToTop />
         <TopBar />
         <Header />
         <main className="flex-grow">
@@ -28,21 +30,16 @@ function App() {
             <Route path="/about" element={<AboutPage />} />
             <Route path="/essentials" element={<Essentials />} />
             <Route path="/contact" element={<Contact />} />
-            
-            {/* Direct match for the Header path */}
             <Route path="/mutual-funds" element={<MutualFunds />} />
-            
-            {/* Add placeholders for other services to avoid 404s */}
-            
             <Route path="/sip-planning" element={<SIPPlanning />} />
-
             <Route path="/elss-tax-saving" element={<ELSS />} />
-
             <Route path="/goal-based-investments" element={<GoalBasedInvestments />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
-            <Route path="/disclaimer" element={<Disclaimer/>} />
-
-            <Route path="/privacy-policy" element={<PrivacyPolicy/>} />
+            {/* ── Blog Routes ── */}
+            <Route path="/blog" element={<BlogPage />} />
+            <Route path="/blog/:slug" element={<BlogDetailPage />} />
           </Routes>
         </main>
         <Footer />
